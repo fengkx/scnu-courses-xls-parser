@@ -1,0 +1,26 @@
+{
+  "name": "scnu-courses-xls-parser",
+  "version": "0.0.1",
+  "description": "Parse SCNU xls format course schedule",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fengkx/scnu-courses-xls-parser.git"
+  },
+  "keywords": [
+    "SCNU",
+    "ISCNU"
+  ],
+  "author": "fengkx",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/fengkx/scnu-courses-xls-parser/issues"
+  },
+  "homepage": "https://github.com/fengkx/scnu-courses-xls-parser#readme",
+  "dependencies": {
+    "xlsx": "^0.16.7"
+  }
+}
