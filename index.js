@@ -1,3 +1,10 @@
+const path = require('path');
+const fs = require('fs').promises;
 const parseSchedule = require('./parser');
-const clsName = '18计算机科学与技术5班课表1';
-console.log(parseSchedule(clsName))
+
+;(async () => {
+    const files = await fs.readdir(path.join(__dirname, 'excel-data'));
+    const clsNames = files.map(item => item.substring(0,item.length-4));
+    const data = clsNames.map(clsName => parseSchedule(clsName)).filter(item => Object.keys(item).length > 0);
+    console.log(JSON.stringify(data, null, 2))
+})()

@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/fengkx/scnu-courses-xls-parser#readme",
   "dependencies": {
+    "debug": "^4.2.0",
     "xlsx": "^0.16.7"
   }
 }

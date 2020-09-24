@@ -1,5 +1,6 @@
 const path = require('path');
 const XLSX = require('xlsx');
+const debug = require('debug');
 const cls2Department = require('./json-data/class2department.json');
 const place2Part = require('./json-data/place2part.json');
 const range = {
@@ -14,43 +15,65 @@ const range = {
 }
 
 function parseSchedule(clsName) {
+    const dLog = debug(clsName);
     const xlsFile = path.join(__dirname, 'excel-data', `${clsName}.xls`);
     const workBox = XLSX.readFile(xlsFile);
 
     const result = {}
-    for(var R = range.s.r; R <= range.e.r; ++R) {
-        for(var C = range.s.c; C <= range.e.c; ++C) {
-            var cell_address = {c:C, r:R};
-            var cell_ref = XLSX.utils.encode_cell(cell_address);
-            const cell = workBox.Sheets.Sheet0[cell_ref];
+    for(let R = range.s.r; R <= range.e.r; ++R) {
+        for(let C = range.s.c; C <= range.e.c; ++C) {
+            const cellAddress = {c:C, r:R};
+            const cellRef = XLSX.utils.encode_cell(cellAddress);
+            const cell = workBox.Sheets.Sheet0[cellRef];
             if(cell) {
                 // no empty cell
-                cell.v.split('\r\n').forEach(cellText => {
-                    const [courseName, courseTime,coursePlace,teacher,size] = cellText.split('/');
+                for (const cellText of cell.v.split('\r\n')) {
+                    const sep = cellText.split('/');
+                    let courseName, courseTime,coursePlace,teacher,size;
+                    // debug('123')(sep.length)
+                    if(sep.length===5) {
+                        [courseName, courseTime,coursePlace,teacher,size] = sep;
+                    } else if(sep.length === 6) {
+                        [_, courseName, courseTime,coursePlace,teacher,size] = sep;
+                        courseName=`${_}/${courseName}`
+                    } else {
+                        dLog('no enoguh info', cellText)
+                        continue;
+                    }
                     const key = `${courseName}/${coursePlace}/${courseTime}/${teacher}`
-                    const match = courseTime.match(/((\d+)-)?(\d+)周/);
-                    // console.log(courseTime, match)
-                    const [_, __,start, end] = match;
                     if(!result[key]) {
                         const [campus, place] = coursePlace.split(' ',2)
                         result[key] = {
                             size: parseInt(size),
                             teacher,
                             campus,
-                            week: [Number(start) || 1, Number(end)],
+                            week: [],
                             department: cls2Department[clsName],
                             place,
                             courseName
                         }
-                        result[key].part = place2Part[place]
+                        result[key].part = place2Part[place];
+                        // (1-3节,5-6节)11-13周(单),14-18周
+                        const weekRe = /((\d+)-)?(\d+)周/;
+                        courseTime.split(',').forEach(text => {
+                            const match = text.match(weekRe);
+                            if(!match) {
+                                if(place !== '未排地点') {
+                                    dLog(text, cellText);
+                                }
+                            } else {
+                                const [_, __,start, end] = match;
+                                result[key].week.push([start, end]);
+                            }
+                        })
                     }
-                    if(result[key].order) {
+                    if(result[key].section) {
                         // [...result[key], {order:R-1, day: C-1}] : [{order:R-1, day: C-1}]
-                        result[key].order.push({order:R-1, day: C-1})
+                        result[key].section.push({section:R-1, day: C-1})
                     } else {
-                        result[key].order = [{order:R-1, day: C-1}]
+                        result[key].section = [{section:R-1, day: C-1}]
                     }
-                })
+                }
             }
         }
     }
