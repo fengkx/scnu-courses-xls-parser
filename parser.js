@@ -25,54 +25,54 @@ function parseSchedule(clsName) {
             const cellAddress = {c:C, r:R};
             const cellRef = XLSX.utils.encode_cell(cellAddress);
             const cell = workBox.Sheets.Sheet0[cellRef];
-            if(cell) {
-                // no empty cell
-                for (const cellText of cell.v.split('\r\n')) {
-                    const sep = cellText.split('/');
-                    let courseName, courseTime,coursePlace,teacher,size;
-                    // debug('123')(sep.length)
-                    if(sep.length===5) {
-                        [courseName, courseTime,coursePlace,teacher,size] = sep;
-                    } else if(sep.length === 6) {
-                        [_, courseName, courseTime,coursePlace,teacher,size] = sep;
-                        courseName=`${_}/${courseName}`
-                    } else {
-                        dLog('no enoguh info', cellText)
-                        continue;
+            if(!cell) {
+                continue;
+            }
+            for (const cellText of cell.v.split('\r\n')) {
+                const sep = cellText.split('/');
+                let courseName, courseTime,coursePlace,teacher,size;
+                // debug('123')(sep.length)
+                if(sep.length===5) {
+                    [courseName, courseTime,coursePlace,teacher,size] = sep;
+                } else if(sep.length === 6) {
+                    [_, courseName, courseTime,coursePlace,teacher,size] = sep;
+                    courseName=`${_}/${courseName}`
+                } else {
+                    dLog('no enoguh info', cellText)
+                    continue;
+                }
+                const key = `${courseName}/${coursePlace}/${courseTime}/${teacher}`
+                if(!result[key]) {
+                    const [campus, place] = coursePlace.split(' ',2)
+                    result[key] = {
+                        size: parseInt(size),
+                        teacher,
+                        campus,
+                        week: [],
+                        department: cls2Department[clsName],
+                        place,
+                        courseName
                     }
-                    const key = `${courseName}/${coursePlace}/${courseTime}/${teacher}`
-                    if(!result[key]) {
-                        const [campus, place] = coursePlace.split(' ',2)
-                        result[key] = {
-                            size: parseInt(size),
-                            teacher,
-                            campus,
-                            week: [],
-                            department: cls2Department[clsName],
-                            place,
-                            courseName
-                        }
-                        result[key].part = place2Part[place];
-                        // (1-3节,5-6节)11-13周(单),14-18周
-                        const weekRe = /((\d+)-)?(\d+)周/;
-                        courseTime.split(',').forEach(text => {
-                            const match = text.match(weekRe);
-                            if(!match) {
-                                if(place !== '未排地点') {
-                                    dLog(text, cellText);
-                                }
-                            } else {
-                                const [_, __,start, end] = match;
-                                result[key].week.push([start, end]);
+                    result[key].part = place2Part[place];
+                    // (1-3节,5-6节)11-13周(单),14-18周
+                    const weekRe = /((\d+)-)?(\d+)周/;
+                    courseTime.split(',').forEach(text => {
+                        const match = text.match(weekRe);
+                        if(!match) {
+                            if(place !== '未排地点') {
+                                dLog(text, cellText);
                             }
-                        })
-                    }
-                    if(result[key].section) {
-                        // [...result[key], {order:R-1, day: C-1}] : [{order:R-1, day: C-1}]
-                        result[key].section.push({section:R-1, day: C-1})
-                    } else {
-                        result[key].section = [{section:R-1, day: C-1}]
-                    }
+                        } else {
+                            const [_, __,start, end] = match;
+                            result[key].week.push([start, end]);
+                        }
+                    })
+                }
+                if(result[key].section) {
+                    // [...result[key], {order:R-1, day: C-1}] : [{order:R-1, day: C-1}]
+                    result[key].section.push({section:R-1, day: C-1})
+                } else {
+                    result[key].section = [{section:R-1, day: C-1}]
                 }
             }
         }
