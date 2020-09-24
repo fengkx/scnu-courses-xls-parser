@@ -30,7 +30,7 @@ function parseSchedule(clsName) {
             }
             for (const cellText of cell.v.split('\r\n')) {
                 const sep = cellText.split('/');
-                let courseName, courseTime,coursePlace,teacher,size;
+                let courseName, courseTime,coursePlace,teacher,size, _;
                 // debug('123')(sep.length)
                 if(sep.length===5) {
                     [courseName, courseTime,coursePlace,teacher,size] = sep;
@@ -55,6 +55,7 @@ function parseSchedule(clsName) {
                     }
                     result[key].part = place2Part[place];
                     // (1-3节,5-6节)11-13周(单),14-18周
+                    // 暂忽略单双
                     const weekRe = /((\d+)-)?(\d+)周/;
                     courseTime.split(',').forEach(text => {
                         const match = text.match(weekRe);

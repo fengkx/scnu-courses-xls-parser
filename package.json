@@ -23,5 +23,8 @@
   "dependencies": {
     "debug": "^4.2.0",
     "xlsx": "^0.16.7"
+  },
+  "devDependencies": {
+    "eslint": "^7.9.0"
   }
 }
